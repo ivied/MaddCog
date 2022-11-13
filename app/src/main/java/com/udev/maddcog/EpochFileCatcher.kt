@@ -9,7 +9,7 @@ import java.util.TimeZone
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-class EpochFileCatcher(file: File) {
+class EpochFileCatcher {
 
     private val MISTAKE_PERCENT = 96
     private val SLEEP_APOCHS = 150
@@ -29,9 +29,7 @@ class EpochFileCatcher(file: File) {
     val hoursFormat = SimpleDateFormat("HH:mm:ss")
     var tempData: ArrayList<ApochPoint> = ArrayList()
 
-    init {
-        dateFormat.timeZone = TimeZone.getTimeZone(TIME_ZONE)
-        hoursFormat.timeZone = TimeZone.getTimeZone(TIME_ZONE)
+    fun setupFile(file: File) {
         val reader = CSVReader(FileReader(file))
         var nextLine: Array<String>?
         reader.readNext() // unused values
@@ -43,6 +41,11 @@ class EpochFileCatcher(file: File) {
             // nextLine[] is an array of values from the line
             nextLine?.let { readData(it) }
         }
+    }
+
+    init {
+        dateFormat.timeZone = TimeZone.getTimeZone(TIME_ZONE)
+        hoursFormat.timeZone = TimeZone.getTimeZone(TIME_ZONE)
     }
 
     fun getStartTime(time: String): Long {
@@ -145,8 +148,8 @@ class EpochFileCatcher(file: File) {
         return -1
     }
 
-    private fun isValidSleep(s: String): Boolean {
-        return sleepArray.contains(s)
+    fun isValidSleep(s: String): Boolean {
+        return sleepArray.contains(s.trim())
     }
 
     private fun readData(lData: Array<String>) {

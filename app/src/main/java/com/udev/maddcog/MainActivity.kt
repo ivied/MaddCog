@@ -10,7 +10,7 @@ import com.udev.maddcog.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private var fileCatcher: EpochFileCatcher? = null
+    private var fileCatcher: EpochFileCatcher = EpochFileCatcher()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
                 val file = getFileFromUri(documentUri)
-                fileCatcher = EpochFileCatcher(file)
+                fileCatcher.setupFile(file)
                 val sleepInformation = fileCatcher?.findSleepPeriod()
                 sleepInformation?.let {
                     binding.apply {
