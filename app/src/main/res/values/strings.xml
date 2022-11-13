@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SleepParser</string>
+    <string name="get_csv">Get CSV</string>
+</resources>
