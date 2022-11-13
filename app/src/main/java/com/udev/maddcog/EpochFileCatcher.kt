@@ -12,22 +12,22 @@ import kotlin.collections.HashMap
 class EpochFileCatcher {
 
     private val MISTAKE_PERCENT = 96
-    private val SLEEP_APOCHS = 150
+    private val SLEEP_EPOCHS = 150
     private val ENTRY_SLEEP_SEQUENCE_COUNT = 10
     private val ENTRY_AWAKE_SEQUENCE_COUNT = 25
-    private val AWAKE_APOCHS = 375
+    private val AWAKE_EPOCHS = 375
     private val EPOCH_SEQUENCE_POSITION = 17
     private val START_EPOCH_POSITION = 2
     private val FINISH_EPOCH_POSITION = 16
     private val sleepArray = arrayOf("8:1", "8:0")
 
     val fullSleepData = ArrayList<String>()
-    val epochMap = HashMap<Int, ApochSequence>()
+    val epochMap = HashMap<Int, EpochSequence>()
     var startTime = 0L
     val TIME_ZONE = "GMT-0:00"
     val dateFormat = SimpleDateFormat("hh:mm:ss a")
     val hoursFormat = SimpleDateFormat("HH:mm:ss")
-    var tempData: ArrayList<ApochPoint> = ArrayList()
+    var tempData: ArrayList<EpochPoint> = ArrayList()
 
     fun setupFile(file: File) {
         val reader = CSVReader(FileReader(file))
@@ -80,26 +80,26 @@ class EpochFileCatcher {
     }
 
     fun findAsleepPoint(): Int {
-        var currentApochSequence: ApochSequence? = null
+        var currentEpochSequence: EpochSequence? = null
         var validCount = 0
         run lit@{
             epochMap.forEach {
                 if (it.value.percentage >= MISTAKE_PERCENT) {
                     if (validCount == 0) {
-                        currentApochSequence = it.value
+                        currentEpochSequence = it.value
                     }
                     validCount++
                     if (validCount == ENTRY_SLEEP_SEQUENCE_COUNT) {
                         return@lit
                     }
                 } else {
-                    currentApochSequence = null
+                    currentEpochSequence = null
                     validCount = 0
                 }
             }
         }
-        currentApochSequence?.let {
-            val firstPoint = it.apochPointList[0]
+        currentEpochSequence?.let {
+            val firstPoint = it.epochPointList[0]
             if (isValidSleep(firstPoint.value)) { // It could be that we missed some sleep points, so, let's find them
                 for (position in firstPoint.position downTo 0) {
                     if (!isValidSleep(fullSleepData[position])) {
@@ -107,9 +107,9 @@ class EpochFileCatcher {
                     }
                 }
             } else {
-                it.apochPointList.forEach { apochPoint ->
-                    if (isValidSleep(apochPoint.value)) {
-                        return apochPoint.position
+                it.epochPointList.forEach { epochPoint ->
+                    if (isValidSleep(epochPoint.value)) {
+                        return epochPoint.position
                     }
                 }
             }
@@ -117,31 +117,31 @@ class EpochFileCatcher {
         return -1
     }
 
-    fun findAwakePoint(startApochPosition: Int): Int {
-        var currentApochSequence: ApochSequence? = null
+    fun findAwakePoint(startEpochPosition: Int): Int {
+        var currentEpochSequence: EpochSequence? = null
         var validCount = 0
         run lit@{
             epochMap.forEach {
-                if (it.value.apochPointList[0].position < startApochPosition) return@forEach
+                if (it.value.epochPointList[0].position < startEpochPosition) return@forEach
                 if (it.value.percentage < MISTAKE_PERCENT) {
                     if (validCount == 0) {
-                        currentApochSequence = it.value
+                        currentEpochSequence = it.value
                     }
                     validCount++
                     if (validCount == ENTRY_AWAKE_SEQUENCE_COUNT) {
                         return@lit
                     }
                 } else {
-                    currentApochSequence = null
+                    currentEpochSequence = null
                     validCount = 0
                 }
             }
         }
 
-        currentApochSequence?.let {
-            it.apochPointList.asReversed().forEach { apoachPoint ->
-                if (isValidSleep(apoachPoint.value)) {
-                    return apoachPoint.position + 1 // Next point is awake, so +1
+        currentEpochSequence?.let {
+            it.epochPointList.asReversed().forEach { epoachPoint ->
+                if (isValidSleep(epoachPoint.value)) {
+                    return epoachPoint.position + 1 // Next point is awake, so +1
                 }
             }
         }
@@ -155,14 +155,14 @@ class EpochFileCatcher {
     private fun readData(lData: Array<String>) {
         for (i in START_EPOCH_POSITION..FINISH_EPOCH_POSITION) {
             val data = lData[i].trim()
-            val apochPoint = ApochPoint(data, fullSleepData.size)
+            val epochPoint = EpochPoint(data, fullSleepData.size)
             fullSleepData.add(data)
-            tempData.add(apochPoint)
+            tempData.add(epochPoint)
         }
-        if (tempData.size >= SLEEP_APOCHS) {
-            val tempList: ArrayList<ApochPoint> = ArrayList()
-            tempList.addAll(tempData.subList(tempData.size - SLEEP_APOCHS, tempData.size).toList())
-            epochMap[epochMap.size] = ApochSequence(
+        if (tempData.size >= SLEEP_EPOCHS) {
+            val tempList: ArrayList<EpochPoint> = ArrayList()
+            tempList.addAll(tempData.subList(tempData.size - SLEEP_EPOCHS, tempData.size).toList())
+            epochMap[epochMap.size] = EpochSequence(
                 lData[EPOCH_SEQUENCE_POSITION].replace("%", "").toInt(),
                 tempList
             )

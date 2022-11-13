@@ -1,6 +1,6 @@
 package com.udev.maddcog
 
-data class ApochPoint(
+data class EpochPoint(
     var value: String,
     val position: Int
 )
